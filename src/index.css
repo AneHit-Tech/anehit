@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  /* Custom site theme scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f8fafc;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #0284c7, #06b6d4);
+    border-radius: 9999px;
+    border: 2px solid #f8fafc;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #0369a1, #0891b2);
+  }
+
+  /* Firefox Support */
+  html {
+    scrollbar-color: #0284c7 #f8fafc;
+    scrollbar-width: thin;
+  }
+}
+
+@layer components {
+  /* Studio Blueprint Card - High Clarity */
+  .studio-card {
+    @apply bg-white border border-slate-200/90 rounded-xl transition-all duration-300 shadow-sm shadow-slate-900/5;
+  }
+  
+  .studio-card-hover {
+    @apply hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/10 hover:-translate-y-0.5;
+  }
+
+  .studio-badge {
+    @apply font-mono text-[11px] tracking-wider uppercase px-2.5 py-1 rounded-md border font-medium;
+  }
+
+  .studio-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Light Architectural Blueprint Grid Background */
+.bg-blueprint {
+  background-color: #f8fafc;
+  background-image: 
+    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Deep Engineering Contrast Section */
+.bg-engineering-dark {
+  background-color: #090d16;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Infinite Marquee Animations */
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-left {
+  display: flex;
+  width: max-content;
+  animation: marquee-left 28s linear infinite;
+}
+
+.animate-marquee-right {
+  display: flex;
+  width: max-content;
+  animation: marquee-right 28s linear infinite;
+}
+
+.animate-marquee-left:hover,
+.animate-marquee-right:hover {
+  animation-play-state: paused;
+}
+
+/* =========================================================================
+   Luxury Smooth Scroll (Lenis) & Section Text Reveal System
+   ========================================================================= */
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Base Section & Card Reveal on Scroll */
+.reveal-init {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Text Fade Reveal - Fail-safe defaults so text is never invisibly hidden */
+.text-fade-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+/* Only hide if actively marked for reveal and not yet visible */
+.reveal-init:not(.reveal-visible) .text-fade-in,
+.text-fade-in.reveal-init:not(.reveal-visible) {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.text-fade-in.reveal-visible,
+.reveal-visible .text-fade-in {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Stagger Delays for one-by-one display */
+.stagger-1 { transition-delay: 60ms !important; }
+.stagger-2 { transition-delay: 120ms !important; }
+.stagger-3 { transition-delay: 180ms !important; }
+.stagger-4 { transition-delay: 240ms !important; }
+.stagger-5 { transition-delay: 300ms !important; }
+.stagger-6 { transition-delay: 360ms !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-init,
+  .text-fade-in {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
