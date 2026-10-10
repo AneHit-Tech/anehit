@@ -268,7 +268,7 @@ export default function Navbar() {
 
               <div className="grid grid-cols-2 gap-2">
                 <a
-                  href="https://wa.me/919429219667?text=Hello%20AneHit%20Tech,%20I%20would%20like%20to%20discuss%20a%20software%20project."
+                  href="https://wa.me/447810263673?text=Hello%20AneHit%20Tech,%20I%20would%20like%20to%20discuss%20a%20software%20project."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-emerald-900 text-xs font-semibold hover:bg-emerald-100 transition-colors"

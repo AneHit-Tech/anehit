@@ -49,8 +49,6 @@ export const teamMembers = [
     role: "Full-Stack Architecture & Backend Systems",
     initials: "AT",
     bio: "Specializes in building scalable web architectures, secure RESTful APIs, database design, and real-time backend integrations with Node.js and modern databases.",
-    linkedin: "https://linkedin.com",
-    github: "https://github.com",
     focus: ["System Architecture", "Node.js & Express", "Database Design", "API Engineering"]
   },
   {
@@ -59,8 +57,6 @@ export const teamMembers = [
     role: "Frontend Engineering & AI Integration",
     initials: "HT",
     bio: "Focuses on crafting responsive, high-performance user interfaces in React.js, modern CSS/Tailwind design systems, and connecting generative AI workflows into usable web products.",
-    linkedin: "https://linkedin.com",
-    github: "https://github.com",
     focus: ["React.js & Tailwind CSS", "UI/UX Engineering", "LLM API Integration", "Mobile-First Design"]
   }
 ];

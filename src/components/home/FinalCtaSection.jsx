@@ -107,7 +107,7 @@ export default function FinalCtaSection() {
                 </Link>
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mt-2 px-1">
                   <span>Detailed milestone estimate</span>
-                  <span>Avg response: 2 hours</span>
+                  <span>Reply within 24 hours</span>
                 </div>
               </div>
 
@@ -115,7 +115,7 @@ export default function FinalCtaSection() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 {/* WhatsApp */}
                 <a
-                  href="https://wa.me/919429219667?text=Hello%20AneHit%20Tech,%20I%20would%20like%20to%20discuss%20a%20software%20project."
+                  href="https://wa.me/447810263673?text=Hello%20AneHit%20Tech,%20I%20would%20like%20to%20discuss%20a%20software%20project."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-white transition-all text-xs font-medium group"

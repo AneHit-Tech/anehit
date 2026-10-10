@@ -1,7 +1,8 @@
 import React from 'react';
 import SectionHeader from '../common/SectionHeader';
 import { studioInfo, teamMembers } from '../../data/team';
-import { GithubIcon, LinkedinIcon } from '../common/BrandIcons';
+import { Mail } from 'lucide-react';
+import { WhatsAppIcon } from '../common/BrandIcons';
 
 export default function TeamSection() {
   return (
@@ -86,26 +87,26 @@ export default function TeamSection() {
                 </div>
               </div>
 
-              {/* Profiles & Verified Dev Presence */}
+              {/* Direct Reach & Verified Contributor */}
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <a
-                    href={member.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-950 transition-colors"
-                    aria-label="GitHub Profile"
+                    href="mailto:anehittech@gmail.com"
+                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-sky-600 transition-colors"
+                    aria-label="Direct Email"
+                    title="Direct Email"
                   >
-                    <GithubIcon className="w-4 h-4" />
+                    <Mail className="w-4 h-4" />
                   </a>
                   <a
-                    href={member.linkedin}
+                    href="https://wa.me/447810263673?text=Hello%20AneHit%20Tech,%20I%20would%20like%20to%20discuss%20a%20software%20project."
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-950 transition-colors"
-                    aria-label="LinkedIn Profile"
+                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-emerald-600 transition-colors"
+                    aria-label="WhatsApp Chat"
+                    title="WhatsApp Chat"
                   >
-                    <LinkedinIcon className="w-4 h-4" />
+                    <WhatsAppIcon className="w-4 h-4" />
                   </a>
                 </div>
 
