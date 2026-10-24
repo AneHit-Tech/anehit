@@ -5,22 +5,30 @@ import {
   AlertCircle, 
   ArrowUpRight, 
   Mail, 
-  MapPin, 
-  Clock, 
   Copy, 
-  Check 
+  Check,
+  Loader2 
 } from 'lucide-react';
-import { WhatsAppIcon } from '../common/BrandIcons';
+import { GithubIcon, LinkedinIcon } from '../common/BrandIcons';
+
+// EmailJS credentials with environment variable support & default fallback
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_8lnzl5j';
+const EMAILJS_TEAM_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEAM_TEMPLATE_ID || 'template_rdr2nzv';
+const EMAILJS_CLIENT_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_CLIENT_TEMPLATE_ID || 'template_suki9lj';
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'uW1MrfGu1nMCf2qQU';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     projectType: 'Web Application',
-    message: ''
+    message: '',
+    botcheck: ''
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -105,89 +113,193 @@ export default function ContactForm() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Honeypot check (silently trap spam bots)
+    if (formData.botcheck) {
+      setSubmitted(true);
+      return;
+    }
+
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
+
     setErrors({});
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const templateParams = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      project_type: formData.projectType,
+      message: formData.message.trim()
+    };
+
+    try {
+      // 1. Send Team Notification Email (to anehittech@gmail.com)
+      const teamResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEAM_TEMPLATE_ID,
+          user_id: EMAILJS_PUBLIC_KEY,
+          template_params: templateParams
+        })
+      });
+
+      if (!teamResponse.ok) {
+        const errorText = await teamResponse.text();
+        throw new Error(errorText || 'Failed to dispatch team notification');
+      }
+
+      // 2. Send Client Confirmation Auto-Reply (to client email)
+      try {
+        await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            service_id: EMAILJS_SERVICE_ID,
+            template_id: EMAILJS_CLIENT_TEMPLATE_ID,
+            user_id: EMAILJS_PUBLIC_KEY,
+            template_params: templateParams
+          })
+        });
+      } catch (clientErr) {
+        console.warn('Client confirmation delivery notice:', clientErr);
+      }
+
+      setSubmitted(true);
+      setSubmitError(null);
+    } catch (err) {
+      console.error('EmailJS submission error:', err);
+      setSubmitError(
+        'Unable to send your inquiry at this moment. Please check your internet connection or email us directly at anehittech@gmail.com.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
       
-      {/* Left Column: Form */}
+      {/* Left Column: Spacious Form */}
       <div className="lg:col-span-7">
-        <div className="studio-card p-6 sm:p-8 border border-slate-200/80 bg-white rounded-2xl shadow-xs">
+        <div className="studio-card p-8 sm:p-10 md:p-12 border-slate-200 bg-white shadow-sm">
           {submitted ? (
-            <div className="py-8 sm:py-10 px-4 text-center space-y-3.5">
-              <div className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
-                <CheckCircle2 className="w-7 h-7" />
+            <div className="py-12 px-4 text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-950">
+              <h3 className="font-display font-bold text-2xl sm:text-3xl text-slate-950">
                 Inquiry Received
               </h3>
-              <p className="text-slate-600 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-                Thank you, <strong className="text-slate-900">{formData.name}</strong>. One of our engineers will review your message and reply at <strong className="text-slate-900">{formData.email}</strong> shortly.
+              <p className="text-slate-600 text-base sm:text-lg max-w-md mx-auto leading-relaxed">
+                Thank you, <strong className="text-slate-900">{formData.name}</strong>. One of our engineers will review your message and reply at <strong className="text-slate-900">{formData.email}</strong> shortly. A confirmation has also been sent to your email.
               </p>
-              <div className="pt-2">
+              <div className="pt-3">
                 <button
                   type="button"
                   onClick={() => {
                     setSubmitted(false);
+                    setSubmitError(null);
                     setFormData({
                       name: '',
                       email: '',
                       projectType: 'Web Application',
-                      message: ''
+                      message: '',
+                      botcheck: ''
                     });
                   }}
-                  className="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-mono font-semibold transition-colors cursor-pointer"
+                  className="px-7 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-mono font-bold transition-colors cursor-pointer"
                 >
                   Send another inquiry
                 </button>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6" noValidate>
+            <form onSubmit={handleSubmit} className="space-y-7 sm:space-y-8" noValidate>
               
+              {/* Honeypot anti-spam field */}
+              <input
+                type="checkbox"
+                name="botcheck"
+                className="hidden"
+                style={{ display: 'none' }}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                checked={Boolean(formData.botcheck)}
+                onChange={(e) => setFormData({ ...formData, botcheck: e.target.checked ? 'bot' : '' })}
+              />
+
+              {/* Error Alert Banner */}
+              {submitError && (
+                <div 
+                  role="alert"
+                  className="p-4 sm:p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex items-start gap-3.5"
+                >
+                  <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 mt-0.5 text-rose-600" />
+                  <div className="space-y-1 text-sm sm:text-base">
+                    <p className="font-mono font-bold text-xs uppercase tracking-wider text-rose-950">
+                      Message Delivery Issue
+                    </p>
+                    <p className="text-rose-700 leading-relaxed">
+                      {submitError}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Name & Email Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-7">
                 <div>
-                  <label htmlFor="name" className="block text-xs font-mono text-slate-700 mb-1.5 uppercase tracking-wider font-semibold">
+                  <label htmlFor="name" className="block text-xs sm:text-sm font-mono text-slate-700 mb-2.5 uppercase tracking-wider font-bold">
                     Your Name <span className="text-sky-600">*</span>
                   </label>
                   <input
                     id="name"
+                    name="name"
                     type="text"
+                    autoComplete="name"
+                    disabled={isSubmitting}
                     value={formData.name}
                     onChange={(e) => {
                       setFormData({ ...formData, name: e.target.value });
                       if (errors.name) setErrors({ ...errors, name: null });
                     }}
                     placeholder="Alex Morgan"
-                    className={`w-full px-3.5 py-2.5 sm:py-3 rounded-xl bg-slate-50/70 border text-slate-900 text-sm sm:text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400 ${
+                    className={`w-full px-5 py-4 sm:py-4.5 rounded-2xl bg-slate-50/70 border text-slate-900 text-base sm:text-lg focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all placeholder:text-slate-400 disabled:opacity-60 disabled:cursor-not-allowed ${
                       errors.name ? 'border-red-400 bg-red-50/20' : 'border-slate-300 hover:border-slate-400'
                     }`}
                   />
                   {errors.name && (
-                    <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-mono">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <p className="mt-2 text-xs sm:text-sm text-red-600 flex items-center gap-1.5 font-mono">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
                       {errors.name}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-xs font-mono text-slate-700 mb-1.5 uppercase tracking-wider font-semibold">
+                  <label htmlFor="email" className="block text-xs sm:text-sm font-mono text-slate-700 mb-2.5 uppercase tracking-wider font-bold">
                     Email Address <span className="text-sky-600">*</span>
                   </label>
                   <input
                     id="email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
+                    disabled={isSubmitting}
                     value={formData.email}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -204,13 +316,13 @@ export default function ContactForm() {
                       }
                     }}
                     placeholder="alex@company.com"
-                    className={`w-full px-3.5 py-2.5 sm:py-3 rounded-xl bg-slate-50/70 border text-slate-900 text-sm sm:text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400 ${
+                    className={`w-full px-5 py-4 sm:py-4.5 rounded-2xl bg-slate-50/70 border text-slate-900 text-base sm:text-lg focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all placeholder:text-slate-400 disabled:opacity-60 disabled:cursor-not-allowed ${
                       errors.email ? 'border-red-400 bg-red-50/20' : 'border-slate-300 hover:border-slate-400'
                     }`}
                   />
                   {errors.email && (
-                    <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-mono">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <p className="mt-2 text-xs sm:text-sm text-red-600 flex items-center gap-1.5 font-mono">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
                       {errors.email}
                     </p>
                   )}
@@ -219,20 +331,21 @@ export default function ContactForm() {
 
               {/* Project Type Selectable Pills */}
               <div>
-                <label className="block text-xs font-mono text-slate-700 mb-2 uppercase tracking-wider font-semibold">
+                <label className="block text-xs sm:text-sm font-mono text-slate-700 mb-3 uppercase tracking-wider font-bold">
                   What are you looking to build?
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {projectTypes.map((type) => {
                     const isSelected = formData.projectType === type;
                     return (
                       <button
                         type="button"
                         key={type}
+                        disabled={isSubmitting}
                         onClick={() => setFormData({ ...formData, projectType: type })}
-                        className={`px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer border ${
+                        className={`px-5 sm:px-6 py-3 rounded-xl sm:rounded-2xl text-sm sm:text-base font-semibold transition-all cursor-pointer border disabled:opacity-60 disabled:cursor-not-allowed ${
                           isSelected
-                            ? 'bg-slate-950 text-white border-slate-950 shadow-2xs'
+                            ? 'bg-slate-950 text-white border-slate-950 shadow-sm'
                             : 'bg-slate-50 hover:bg-slate-100 hover:border-slate-300 border-slate-200 text-slate-700'
                         }`}
                       >
@@ -245,38 +358,54 @@ export default function ContactForm() {
 
               {/* Message Details */}
               <div>
-                <label htmlFor="message" className="block text-xs font-mono text-slate-700 mb-1.5 uppercase tracking-wider font-semibold">
+                <label htmlFor="message" className="block text-xs sm:text-sm font-mono text-slate-700 mb-2.5 uppercase tracking-wider font-bold">
                   Project Details <span className="text-sky-600">*</span>
                 </label>
                 <textarea
                   id="message"
-                  rows={4}
+                  name="message"
+                  rows={5}
+                  disabled={isSubmitting}
                   value={formData.message}
                   onChange={(e) => {
                     setFormData({ ...formData, message: e.target.value });
                     if (errors.message) setErrors({ ...errors, message: null });
                   }}
                   placeholder="Describe your project, timeline, features you need, or questions you have..."
-                  className={`w-full px-3.5 py-2.5 sm:py-3 rounded-xl bg-slate-50/70 border text-slate-900 text-sm sm:text-base focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400 resize-y ${
+                  className={`w-full px-5 py-4 sm:py-4.5 rounded-2xl bg-slate-50/70 border text-slate-900 text-base sm:text-lg focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all placeholder:text-slate-400 resize-y disabled:opacity-60 disabled:cursor-not-allowed ${
                     errors.message ? 'border-red-400 bg-red-50/20' : 'border-slate-300 hover:border-slate-400'
                   }`}
                 />
                 {errors.message && (
-                  <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-mono">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <p className="mt-2 text-xs sm:text-sm text-red-600 flex items-center gap-1.5 font-mono">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
                     {errors.message}
                   </p>
                 )}
               </div>
 
               {/* Submit CTA */}
-              <div className="pt-1">
+              <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-xl bg-slate-950 hover:bg-sky-600 text-white font-semibold text-sm sm:text-base transition-all shadow-sm active:scale-98 cursor-pointer"
+                  disabled={isSubmitting}
+                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 sm:px-11 py-4.5 sm:py-5 rounded-2xl font-bold text-base sm:text-lg transition-all shadow-md ${
+                    isSubmitting
+                      ? 'bg-slate-700 text-slate-200 cursor-not-allowed'
+                      : 'bg-slate-950 hover:bg-sky-600 text-white active:scale-98 cursor-pointer'
+                  }`}
                 >
-                  <span>Send Message</span>
-                  <Send className="w-4 h-4" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin text-sky-400" />
+                      <span>Sending inquiry...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Send Message</span>
+                      <Send className="w-5 h-5" />
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -285,34 +414,34 @@ export default function ContactForm() {
         </div>
       </div>
 
-      {/* Right Column: Direct Company Channels */}
-      <div className="lg:col-span-5 space-y-5">
-        <div className="studio-card p-6 sm:p-7 border border-slate-200/80 bg-white rounded-2xl space-y-5 shadow-xs">
+      {/* Right Column: Direct Contact Info (Spacious & Clean) */}
+      <div className="lg:col-span-5 space-y-6">
+        <div className="studio-card p-8 sm:p-10 border-slate-200 bg-white space-y-6 shadow-sm">
           <div>
-            <span className="text-xs font-mono text-sky-700 uppercase tracking-wider font-bold block mb-1.5">
-              Direct Channels
+            <span className="text-xs sm:text-sm font-mono text-sky-700 uppercase tracking-wider font-bold block mb-2">
+              Direct Contact
             </span>
-            <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-950">
-              Prefer to connect directly?
+            <h3 className="font-display font-bold text-2xl sm:text-3xl text-slate-950">
+              Prefer to email or connect directly?
             </h3>
-            <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">
-              Reach out directly to our engineering team for instant inquiries or project estimates.
+            <p className="text-base text-slate-600 mt-2.5 leading-relaxed">
+              Reach out directly to our engineering team without waiting for a sales call.
             </p>
           </div>
 
-          <div className="space-y-3 pt-1">
+          <div className="space-y-4 pt-2">
             {/* Email with 1-click copy */}
-            <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-between group hover:border-slate-300 transition-all">
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between group">
               <a 
                 href="mailto:anehittech@gmail.com" 
-                className="flex items-center gap-3 hover:text-sky-600 transition-colors flex-grow min-w-0"
+                className="flex items-center gap-4 hover:text-sky-600 transition-colors flex-grow"
               >
-                <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-sky-700 shadow-2xs shrink-0">
-                  <Mail className="w-4 h-4" />
+                <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sky-700 shadow-2xs shrink-0">
+                  <Mail className="w-5 h-5" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-mono text-slate-500 uppercase font-semibold">Official Email</div>
-                  <div className="text-sm sm:text-base font-mono text-slate-900 font-bold group-hover:text-sky-600 truncate">
+                <div>
+                  <div className="text-xs font-mono text-slate-400 uppercase font-semibold">Email Directly</div>
+                  <div className="text-base sm:text-lg font-mono text-slate-900 font-bold group-hover:text-sky-600">
                     anehittech@gmail.com
                   </div>
                 </div>
@@ -321,50 +450,53 @@ export default function ContactForm() {
                 type="button"
                 onClick={handleCopyEmail}
                 title="Copy email to clipboard"
-                className="p-2 text-slate-400 hover:text-slate-700 transition-colors rounded-lg hover:bg-slate-200/60 cursor-pointer shrink-0 ml-1.5"
+                className="p-3 text-slate-400 hover:text-slate-700 transition-colors rounded-xl hover:bg-slate-200/60 cursor-pointer shrink-0 ml-2"
               >
-                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5" />}
               </button>
             </div>
 
-            {/* WhatsApp Business Chat */}
+            {/* LinkedIn */}
             <a
-              href="https://wa.me/447810263673?text=Hello%20AneHit%20Tech,%20I%20would%20like%20to%20discuss%20a%20software%20project."
+              href="https://www.linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-3.5 sm:p-4 rounded-xl bg-emerald-50/50 border border-emerald-200/80 hover:border-emerald-300 hover:bg-emerald-50 flex items-center justify-between group transition-all"
+              className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:bg-white flex items-center justify-between group transition-all"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-2xs shrink-0">
-                  <WhatsAppIcon className="w-4 h-4" />
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sky-700 shadow-2xs shrink-0">
+                  <LinkedinIcon className="w-5 h-5" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-mono text-emerald-700 uppercase font-semibold">WhatsApp Business</div>
-                  <div className="text-sm sm:text-base font-mono text-slate-900 font-bold group-hover:text-emerald-700 truncate">
-                    +44 7810 263673
+                <div>
+                  <div className="text-xs font-mono text-slate-400 uppercase font-semibold">LinkedIn</div>
+                  <div className="text-base sm:text-lg font-mono text-slate-900 font-semibold group-hover:text-sky-600">
+                    Connect on LinkedIn
                   </div>
                 </div>
               </div>
-              <ArrowUpRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
+              <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-sky-600" />
             </a>
-          </div>
 
-          {/* Quick Business Information / Availability Note */}
-          <div className="pt-3 border-t border-slate-150 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600">
-            <div className="flex items-start gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
-              <Clock className="w-3.5 h-3.5 text-sky-600 mt-0.5 shrink-0" />
-              <div>
-                <span className="font-semibold text-slate-800 block">Fast Response</span>
-                <span>Replies within 24 hours</span>
+            {/* GitHub */}
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:bg-white flex items-center justify-between group transition-all"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sky-700 shadow-2xs shrink-0">
+                  <GithubIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-mono text-slate-400 uppercase font-semibold">GitHub</div>
+                  <div className="text-base sm:text-lg font-mono text-slate-900 font-semibold group-hover:text-sky-600">
+                    View Open Source Code
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
-              <MapPin className="w-3.5 h-3.5 text-sky-600 mt-0.5 shrink-0" />
-              <div>
-                <span className="font-semibold text-slate-800 block">Location</span>
-                <span>Gujarat, India • Remote Worldwide</span>
-              </div>
-            </div>
+              <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-sky-600" />
+            </a>
           </div>
         </div>
       </div>
