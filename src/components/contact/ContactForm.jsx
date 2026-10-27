@@ -3,13 +3,13 @@ import {
   Send, 
   CheckCircle2, 
   AlertCircle, 
-  ArrowUpRight, 
   Mail, 
   Copy, 
   Check,
-  Loader2 
+  Loader2,
+  Clock,
+  ShieldCheck 
 } from 'lucide-react';
-import { GithubIcon, LinkedinIcon } from '../common/BrandIcons';
 
 // EmailJS credentials with environment variable support & default fallback
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_8lnzl5j';
@@ -257,7 +257,7 @@ export default function ContactForm() {
       
       {/* Left Column: Spacious Form */}
       <div className="lg:col-span-7">
-        <div className="studio-card p-8 sm:p-10 md:p-12 border-slate-200 bg-white shadow-sm">
+        <div className="studio-card p-5 sm:p-8 md:p-10 lg:p-12 border-slate-200 bg-white shadow-sm">
           {submitted ? (
             <div className="py-12 px-4 text-center space-y-4">
               <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
@@ -450,25 +450,25 @@ export default function ContactForm() {
               </div>
 
               {/* Submit CTA */}
-              <div className="pt-2">
+              <div className="pt-1 sm:pt-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 sm:px-11 py-4.5 sm:py-5 rounded-2xl font-bold text-base sm:text-lg transition-all shadow-md ${
+                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 sm:px-9 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all shadow-sm hover:shadow-md ${
                     isSubmitting
                       ? 'bg-slate-700 text-slate-200 cursor-not-allowed'
-                      : 'bg-slate-950 hover:bg-sky-600 text-white active:scale-98 cursor-pointer'
+                      : 'bg-slate-950 hover:bg-sky-600 text-white active:scale-[0.99] cursor-pointer'
                   }`}
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin text-sky-400" />
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-sky-400" />
                       <span>Sending inquiry...</span>
                     </>
                   ) : (
                     <>
                       <span>Send Message</span>
-                      <Send className="w-5 h-5" />
+                      <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                     </>
                   )}
                 </button>
@@ -481,32 +481,34 @@ export default function ContactForm() {
 
       {/* Right Column: Direct Contact Info (Spacious & Clean) */}
       <div className="lg:col-span-5 space-y-6">
-        <div className="studio-card p-8 sm:p-10 border-slate-200 bg-white space-y-6 shadow-sm">
+        <div className="studio-card p-5 sm:p-8 md:p-10 border-slate-200 bg-white space-y-5 sm:space-y-6 shadow-sm overflow-hidden">
           <div>
-            <span className="text-xs sm:text-sm font-mono text-sky-700 uppercase tracking-wider font-bold block mb-2">
+            <span className="text-xs sm:text-sm font-mono text-sky-700 uppercase tracking-wider font-bold block mb-1.5 sm:mb-2">
               Direct Contact
             </span>
-            <h3 className="font-display font-bold text-2xl sm:text-3xl text-slate-950">
+            <h3 className="font-display font-bold text-xl sm:text-2xl md:text-3xl text-slate-950">
               Prefer to email or connect directly?
             </h3>
-            <p className="text-base text-slate-600 mt-2.5 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 mt-2 leading-relaxed">
               Reach out directly to our engineering team without waiting for a sales call.
             </p>
           </div>
 
-          <div className="space-y-4 pt-2">
-            {/* Email with 1-click copy */}
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between group">
+          <div className="space-y-3.5 pt-1">
+            {/* Email with 1-click copy - guaranteed inside boundary on all screens */}
+            <div className="p-3.5 sm:p-4.5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2.5 sm:gap-3 group overflow-hidden">
               <a 
                 href="mailto:anehittech@gmail.com" 
-                className="flex items-center gap-4 hover:text-sky-600 transition-colors flex-grow"
+                className="flex items-center gap-3 sm:gap-3.5 hover:text-sky-600 transition-colors min-w-0 flex-1"
               >
-                <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sky-700 shadow-2xs shrink-0">
-                  <Mail className="w-5 h-5" />
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sky-700 shadow-2xs shrink-0">
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <div className="text-xs font-mono text-slate-400 uppercase font-semibold">Email Directly</div>
-                  <div className="text-base sm:text-lg font-mono text-slate-900 font-bold group-hover:text-sky-600">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] sm:text-xs font-mono text-slate-400 uppercase font-semibold tracking-wider">
+                    Email Directly
+                  </div>
+                  <div className="text-xs sm:text-sm md:text-base font-mono text-slate-900 font-bold group-hover:text-sky-600 truncate">
                     anehittech@gmail.com
                   </div>
                 </div>
@@ -515,53 +517,34 @@ export default function ContactForm() {
                 type="button"
                 onClick={handleCopyEmail}
                 title="Copy email to clipboard"
-                className="p-3 text-slate-400 hover:text-slate-700 transition-colors rounded-xl hover:bg-slate-200/60 cursor-pointer shrink-0 ml-2"
+                aria-label="Copy email address"
+                className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all cursor-pointer shrink-0 border ${
+                  copied 
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-600' 
+                    : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-400 hover:text-slate-700 shadow-2xs'
+                }`}
               >
-                {copied ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5" />}
+                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
 
-            {/* LinkedIn */}
-            <a
-              href="https://www.linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:bg-white flex items-center justify-between group transition-all"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sky-700 shadow-2xs shrink-0">
-                  <LinkedinIcon className="w-5 h-5" />
-                </div>
+            {/* Quick Guarantees & Direct Engineer Highlights */}
+            <div className="pt-2 border-t border-slate-100 space-y-2.5">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100 text-xs text-slate-600">
+                <Clock className="w-4 h-4 text-sky-600 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-xs font-mono text-slate-400 uppercase font-semibold">LinkedIn</div>
-                  <div className="text-base sm:text-lg font-mono text-slate-900 font-semibold group-hover:text-sky-600">
-                    Connect on LinkedIn
-                  </div>
+                  <span className="font-semibold text-slate-900 block font-sans">Fast Response Guarantee</span>
+                  <span>We review incoming project briefs and reply within 24 hours.</span>
                 </div>
               </div>
-              <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-sky-600" />
-            </a>
-
-            {/* GitHub */}
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:bg-white flex items-center justify-between group transition-all"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sky-700 shadow-2xs shrink-0">
-                  <GithubIcon className="w-5 h-5" />
-                </div>
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100 text-xs text-slate-600">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-xs font-mono text-slate-400 uppercase font-semibold">GitHub</div>
-                  <div className="text-base sm:text-lg font-mono text-slate-900 font-semibold group-hover:text-sky-600">
-                    View Open Source Code
-                  </div>
+                  <span className="font-semibold text-slate-900 block font-sans">Direct Engineer Access</span>
+                  <span>Talk directly with architects and developers, no pushy sales pitches.</span>
                 </div>
               </div>
-              <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-sky-600" />
-            </a>
+            </div>
           </div>
         </div>
       </div>
