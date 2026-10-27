@@ -17,13 +17,16 @@ const EMAILJS_TEAM_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEAM_TEMPLATE_ID |
 const EMAILJS_CLIENT_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_CLIENT_TEMPLATE_ID || 'template_suki9lj';
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'uW1MrfGu1nMCf2qQU';
 
+// Web3Forms configuration (reliable direct-to-inbox delivery)
+const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || '001b02c8-18fb-472e-a85f-f7d6da736b77';
+
 export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     projectType: 'Web Application',
     message: '',
-    botcheck: ''
+    hp: '' // anti-spam honeypot
   });
 
   const [errors, setErrors] = useState({});
@@ -116,8 +119,9 @@ export default function ContactForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Honeypot check (silently trap spam bots)
-    if (formData.botcheck) {
+    // Honeypot check (silently trap automated spam bots, never trigger on normal users)
+    if (formData.hp && formData.hp.trim().length > 0) {
+      console.warn('Spam trap triggered, simulating submission.');
       setSubmitted(true);
       return;
     }
@@ -132,20 +136,44 @@ export default function ContactForm() {
     setIsSubmitting(true);
     setSubmitError(null);
 
+    const trimmedName = formData.name.trim();
+    const trimmedEmail = formData.email.trim();
+    const trimmedMessage = formData.message.trim();
+
+    // Comprehensive template parameters matching any EmailJS placeholder naming convention
     const templateParams = {
-      name: formData.name.trim(),
-      email: formData.email.trim(),
+      name: trimmedName,
+      from_name: trimmedName,
+      user_name: trimmedName,
+      sender_name: trimmedName,
+
+      email: trimmedEmail,
+      from_email: trimmedEmail,
+      user_email: trimmedEmail,
+      reply_to: trimmedEmail,
+      to_email: trimmedEmail,
+
       project_type: formData.projectType,
-      message: formData.message.trim()
+      projectType: formData.projectType,
+      subject: `New Inquiry [${formData.projectType}] from ${trimmedName}`,
+
+      message: trimmedMessage,
+      user_message: trimmedMessage,
+      submitted_at: new Date().toLocaleString()
     };
 
+    let deliveredSuccessfully = false;
+
+    // 1. Primary Flow: Dispatch via EmailJS (1 Team Notification + 1 Client Confirmation)
     try {
-      // 1. Send Team Notification Email (to anehittech@gmail.com)
+      const emailjsHeaders = {
+        'Content-Type': 'application/json'
+      };
+
+      // 1a. Team Notification Email (Only 1 email to company)
       const teamResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: emailjsHeaders,
         body: JSON.stringify({
           service_id: EMAILJS_SERVICE_ID,
           template_id: EMAILJS_TEAM_TEMPLATE_ID,
@@ -154,18 +182,18 @@ export default function ContactForm() {
         })
       });
 
-      if (!teamResponse.ok) {
-        const errorText = await teamResponse.text();
-        throw new Error(errorText || 'Failed to dispatch team notification');
+      if (teamResponse.ok) {
+        deliveredSuccessfully = true;
+      } else {
+        const errorText = await teamResponse.text().catch(() => '');
+        console.warn('EmailJS team notification status:', teamResponse.status, errorText);
       }
 
-      // 2. Send Client Confirmation Auto-Reply (to client email)
+      // 1b. Client Confirmation Auto-Reply Email
       try {
         await fetch('https://api.emailjs.com/api/v1.0/email/send', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: emailjsHeaders,
           body: JSON.stringify({
             service_id: EMAILJS_SERVICE_ID,
             template_id: EMAILJS_CLIENT_TEMPLATE_ID,
@@ -176,17 +204,52 @@ export default function ContactForm() {
       } catch (clientErr) {
         console.warn('Client confirmation delivery notice:', clientErr);
       }
+    } catch (emailjsErr) {
+      console.warn('EmailJS dispatch notice:', emailjsErr);
+    }
 
+    // 2. Fallback Flow: ONLY if EmailJS failed, trigger Web3Forms as emergency backup
+    if (!deliveredSuccessfully && WEB3FORMS_ACCESS_KEY) {
+      try {
+        console.info('EmailJS unavailable, invoking backup channel...');
+        const web3Response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_ACCESS_KEY,
+            name: trimmedName,
+            email: trimmedEmail,
+            subject: `New Lead: ${formData.projectType} from ${trimmedName}`,
+            project_type: formData.projectType,
+            message: trimmedMessage,
+            from_name: `${trimmedName} (via AneHit Site)`
+          })
+        });
+
+        const web3Data = await web3Response.json().catch(() => null);
+        if (web3Response.ok && (!web3Data || web3Data.success !== false)) {
+          deliveredSuccessfully = true;
+        } else {
+          console.warn('Web3Forms backup response:', web3Data);
+        }
+      } catch (web3Err) {
+        console.warn('Web3Forms backup notice:', web3Err);
+      }
+    }
+
+    if (deliveredSuccessfully) {
       setSubmitted(true);
       setSubmitError(null);
-    } catch (err) {
-      console.error('EmailJS submission error:', err);
+    } else {
       setSubmitError(
         'Unable to send your inquiry at this moment. Please check your internet connection or email us directly at anehittech@gmail.com.'
       );
-    } finally {
-      setIsSubmitting(false);
     }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -217,7 +280,7 @@ export default function ContactForm() {
                       email: '',
                       projectType: 'Web Application',
                       message: '',
-                      botcheck: ''
+                      hp: ''
                     });
                   }}
                   className="px-7 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-mono font-bold transition-colors cursor-pointer"
@@ -229,18 +292,20 @@ export default function ContactForm() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-7 sm:space-y-8" noValidate>
               
-              {/* Honeypot anti-spam field */}
-              <input
-                type="checkbox"
-                name="botcheck"
-                className="hidden"
-                style={{ display: 'none' }}
-                tabIndex={-1}
-                autoComplete="off"
+              {/* Anti-spam honeypot (off-screen, never filled by normal users) */}
+              <div 
+                style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, overflow: 'hidden' }}
                 aria-hidden="true"
-                checked={Boolean(formData.botcheck)}
-                onChange={(e) => setFormData({ ...formData, botcheck: e.target.checked ? 'bot' : '' })}
-              />
+              >
+                <input
+                  type="text"
+                  name="_hp_verification"
+                  tabIndex={-1}
+                  autoComplete="new-password"
+                  value={formData.hp}
+                  onChange={(e) => setFormData({ ...formData, hp: e.target.value })}
+                />
+              </div>
 
               {/* Error Alert Banner */}
               {submitError && (
