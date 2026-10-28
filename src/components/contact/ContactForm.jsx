@@ -164,48 +164,75 @@ export default function ContactForm() {
 
     let deliveredSuccessfully = false;
 
-    // 1. Primary Flow: Dispatch via EmailJS (1 Team Notification + 1 Client Confirmation)
+    // 1. Primary Flow: Dispatch via internal Vercel API with Nodemailer (100% custom HTML template, 0 watermarks!)
     try {
-      const emailjsHeaders = {
-        'Content-Type': 'application/json'
-      };
-
-      // 1a. Team Notification Email (Only 1 email to company)
-      const teamResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      const apiResponse = await fetch('/api/send-email', {
         method: 'POST',
-        headers: emailjsHeaders,
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
-          service_id: EMAILJS_SERVICE_ID,
-          template_id: EMAILJS_TEAM_TEMPLATE_ID,
-          user_id: EMAILJS_PUBLIC_KEY,
-          template_params: templateParams
+          name: trimmedName,
+          email: trimmedEmail,
+          projectType: formData.projectType,
+          message: trimmedMessage
         })
       });
 
-      if (teamResponse.ok) {
+      if (apiResponse.ok) {
         deliveredSuccessfully = true;
       } else {
-        const errorText = await teamResponse.text().catch(() => '');
-        console.warn('EmailJS team notification status:', teamResponse.status, errorText);
+        const errorData = await apiResponse.json().catch(() => null);
+        console.warn('API /api/send-email response:', errorData);
       }
+    } catch (apiErr) {
+      console.warn('API /api/send-email error notice:', apiErr);
+    }
 
-      // 1b. Client Confirmation Auto-Reply Email
+    // 2. Secondary Flow: Fallback to EmailJS ONLY if /api/send-email was unavailable
+    if (!deliveredSuccessfully) {
       try {
-        await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        const emailjsHeaders = {
+          'Content-Type': 'application/json'
+        };
+
+        // 2a. Team Notification Email
+        const teamResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
           method: 'POST',
           headers: emailjsHeaders,
           body: JSON.stringify({
             service_id: EMAILJS_SERVICE_ID,
-            template_id: EMAILJS_CLIENT_TEMPLATE_ID,
+            template_id: EMAILJS_TEAM_TEMPLATE_ID,
             user_id: EMAILJS_PUBLIC_KEY,
             template_params: templateParams
           })
         });
-      } catch (clientErr) {
-        console.warn('Client confirmation delivery notice:', clientErr);
+
+        if (teamResponse.ok) {
+          deliveredSuccessfully = true;
+        } else {
+          const errorText = await teamResponse.text().catch(() => '');
+          console.warn('EmailJS team notification status:', teamResponse.status, errorText);
+        }
+
+        // 2b. Client Confirmation Auto-Reply Email
+        try {
+          await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: emailjsHeaders,
+            body: JSON.stringify({
+              service_id: EMAILJS_SERVICE_ID,
+              template_id: EMAILJS_CLIENT_TEMPLATE_ID,
+              user_id: EMAILJS_PUBLIC_KEY,
+              template_params: templateParams
+            })
+          });
+        } catch (clientErr) {
+          console.warn('Client confirmation delivery notice:', clientErr);
+        }
+      } catch (emailjsErr) {
+        console.warn('EmailJS dispatch notice:', emailjsErr);
       }
-    } catch (emailjsErr) {
-      console.warn('EmailJS dispatch notice:', emailjsErr);
     }
 
     // 2. Fallback Flow: ONLY if EmailJS failed, trigger Web3Forms as emergency backup
