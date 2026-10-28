@@ -3,7 +3,7 @@ import ContactForm from '../components/contact/ContactForm';
 
 export default function ContactPage() {
   return (
-    <div className="py-12 sm:py-16 md:py-24 bg-blueprint min-h-screen">
+    <div className="pt-6 pb-12 sm:pt-10 sm:pb-16 md:py-20 bg-blueprint min-h-screen">
       <div className="studio-container">
 
         {/* Page Header (Centered) */}

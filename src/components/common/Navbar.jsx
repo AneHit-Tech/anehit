@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Menu, 
-  X, 
-  ArrowUpRight, 
-  ChevronRight, 
-  Home, 
-  Layers, 
-  Briefcase, 
-  FileText, 
-  Users, 
-  Mail, 
-  MessageSquare, 
+import {
+  Menu,
+  X,
+  ArrowUpRight,
+  ChevronRight,
+  Home,
+  Layers,
+  Briefcase,
+  FileText,
+  Users,
+  Mail,
+  MessageSquare,
   ExternalLink,
   ShieldCheck,
   Zap,
@@ -32,10 +32,21 @@ export default function Navbar() {
   ];
 
 
+  const [scrolled, setScrolled] = useState(false);
+
   // Close menu on route navigation
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
+
+  // Handle scroll effect for sleek elevation
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Lock body scroll when mobile menu is active
   useEffect(() => {
@@ -66,16 +77,22 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 transition-all shadow-xs">
-        <div className="studio-container flex items-center justify-between h-18 sm:h-20">
+      <header 
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          scrolled 
+            ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs' 
+            : 'bg-white/85 backdrop-blur-sm border-b border-slate-200/60'
+        }`}
+      >
+        <div className="studio-container flex items-center justify-between h-14 sm:h-16 lg:h-18 transition-all">
           
           {/* Brand Logo with Official AneHit Image */}
           <Link 
             to="/" 
-            className="flex items-center gap-3 group focus:outline-none"
+            className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 group focus:outline-none"
             aria-label="AneHit Homepage"
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center shrink-0 shadow-sm group-hover:border-sky-500 transition-colors">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl overflow-hidden border border-slate-200/90 bg-slate-950 flex items-center justify-center shrink-0 shadow-2xs group-hover:border-sky-500 transition-colors">
               <img 
                 src="/anehit-logo.png" 
                 alt="AneHit Logo" 
@@ -84,31 +101,31 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-display font-black text-xl sm:text-2xl text-slate-950 tracking-tight leading-none group-hover:text-sky-600 transition-colors">
+                <span className="font-display font-black text-lg sm:text-xl lg:text-2xl text-slate-950 tracking-tight leading-none group-hover:text-sky-600 transition-colors">
                   AneHit
                 </span>
-                <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded leading-none">
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold text-sky-700 bg-sky-50 border border-sky-200/90 px-1.5 py-0.5 rounded leading-none">
                   TECH
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-slate-500 tracking-wider uppercase font-semibold mt-0.5">
+              <span className="text-[9.5px] sm:text-[10.5px] font-mono text-slate-400 tracking-wider uppercase font-semibold leading-none mt-0.5">
                 Ideas to Impact
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1.5 xl:gap-2.5">
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
             {navLinks.map((link) => {
               const isActive = isLinkActive(link.path);
               return (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`px-3.5 py-2 rounded-xl text-sm sm:text-[15px] font-semibold transition-all duration-200 ${
+                  className={`px-3 py-1.5 xl:px-3.5 xl:py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                     isActive
                       ? 'text-sky-700 bg-sky-50/90 border border-sky-200/80 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/80'
                   }`}
                 >
                   {link.name}
@@ -121,7 +138,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-950 hover:bg-sky-600 text-white font-semibold text-sm sm:text-[15px] tracking-wide transition-all shadow-sm active:scale-95"
+              className="inline-flex items-center gap-2 px-4.5 py-2 rounded-xl bg-slate-950 hover:bg-sky-600 text-white font-semibold text-sm tracking-wide transition-all shadow-xs active:scale-95"
             >
               <span>Let's Work Together</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -129,23 +146,23 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Right Bar */}
-          <div className="flex items-center gap-2.5 lg:hidden">
+          <div className="flex items-center gap-2 lg:hidden">
             <Link
               to="/contact"
-              className="px-4 py-2 rounded-xl bg-slate-950 hover:bg-sky-600 text-white text-sm font-semibold sm:inline-flex hidden items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-sky-600 text-white text-xs font-semibold sm:inline-flex hidden items-center gap-1.5 transition-colors shadow-2xs"
             >
               <span>Hire Us</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
             
-            {/* Smooth Hamburger Trigger */}
+            {/* Sleek Mobile Hamburger Trigger */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 hover:text-sky-600 hover:bg-slate-200/70 transition-all duration-200 focus:outline-none cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-50 hover:bg-slate-100 active:scale-95 border border-slate-200/80 text-slate-800 hover:text-sky-600 flex items-center justify-center transition-all duration-200 focus:outline-none cursor-pointer shadow-2xs"
               aria-label="Open navigation menu"
               aria-expanded={mobileMenuOpen}
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
             </button>
           </div>
 
@@ -153,50 +170,48 @@ export default function Navbar() {
       </header>
 
       {/* Silky-Smooth Animated Mobile Drawer & Backdrop */}
-      <div 
-        className={`fixed inset-0 z-[100] lg:hidden transition-all duration-300 ${
-          mobileMenuOpen ? 'pointer-events-auto visible' : 'pointer-events-none invisible'
-        }`}
+      <div
+        className={`fixed inset-0 z-[100] lg:hidden transition-all duration-300 ${mobileMenuOpen ? 'pointer-events-auto visible' : 'pointer-events-none invisible'
+          }`}
         aria-hidden={!mobileMenuOpen}
       >
         {/* 1. Backdrop Overlay with smooth opacity and blur transition */}
-        <div 
-          className={`fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 ease-out ${
-            mobileMenuOpen ? 'opacity-100' : 'opacity-0'
-          }`}
+        <div
+          className={`fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 ease-out ${mobileMenuOpen ? 'opacity-100' : 'opacity-0'
+            }`}
           onClick={() => setMobileMenuOpen(false)}
         />
 
         {/* 2. Solid White Sidebar Drawer with Smooth Spring Deceleration Curve */}
-        <aside 
-          className={`fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[101] flex flex-col justify-between transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] transform will-change-transform ${
+        <aside
+          className={`fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white shadow-2xl z-[101] flex flex-col justify-between transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] transform will-change-transform ${
             mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           {/* Drawer Top Header */}
-          <div className="p-5 border-b border-slate-200/90 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white shrink-0">
-            <Link 
-              to="/" 
+          <div className="h-14 sm:h-16 px-4 sm:px-5 border-b border-slate-200/90 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white shrink-0">
+            <Link
+              to="/"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2.5 group"
             >
-              <div className="w-9 h-9 rounded-xl overflow-hidden border border-slate-200 bg-slate-950 shrink-0 shadow-xs group-hover:border-sky-500 transition-colors">
-                <img 
-                  src="/anehit-logo.png" 
-                  alt="AneHit Logo" 
+              <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200/90 bg-slate-950 shrink-0 shadow-2xs group-hover:border-sky-500 transition-colors">
+                <img
+                  src="/anehit-logo.png"
+                  alt="AneHit Logo"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-display font-extrabold text-lg text-slate-950 group-hover:text-sky-600 transition-colors block">
+                  <span className="font-display font-black text-base sm:text-lg text-slate-950 group-hover:text-sky-600 transition-colors block">
                     AneHit
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded leading-none">
+                  <span className="text-[9px] font-mono font-bold text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded leading-none">
                     TECH
                   </span>
                 </div>
-                <span className="text-xs text-slate-500 uppercase tracking-wider block font-semibold mt-0.5">
+                <span className="text-[9.5px] font-mono text-slate-400 uppercase tracking-wider block font-semibold leading-none mt-0.5">
                   Ideas to Impact
                 </span>
               </div>
@@ -205,10 +220,10 @@ export default function Navbar() {
             {/* Smooth Rotating Close Button */}
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-950 hover:bg-slate-200/80 transition-all duration-200 group focus:outline-none cursor-pointer"
+              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200/80 active:scale-95 border border-slate-200 text-slate-600 hover:text-slate-950 flex items-center justify-center transition-all duration-200 group focus:outline-none cursor-pointer"
               aria-label="Close navigation menu"
             >
-              <X className="w-5 h-5 transition-transform duration-200 group-hover:rotate-90" />
+              <X className="w-4.5 h-4.5 transition-transform duration-200 group-hover:rotate-90" />
             </button>
           </div>
 
@@ -233,16 +248,14 @@ export default function Navbar() {
                   to={link.path}
                   onClick={() => setMobileMenuOpen(false)}
                   style={{ transitionDelay: mobileMenuOpen ? `${idx * 35}ms` : '0ms' }}
-                  className={`flex items-center justify-between px-4 py-3.5 rounded-xl text-base font-semibold transition-all duration-200 group border ${
-                    isActive
-                      ? 'bg-sky-50 text-sky-900 border-sky-200 shadow-xs'
-                      : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-950 border-slate-100 hover:border-slate-200'
-                  }`}
+                  className={`flex items-center justify-between px-4 py-3.5 rounded-xl text-base font-semibold transition-all duration-200 group border ${isActive
+                    ? 'bg-sky-50 text-sky-900 border-sky-200 shadow-xs'
+                    : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-950 border-slate-100 hover:border-slate-200'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-                      isActive ? 'bg-sky-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-800'
-                    }`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-sky-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-800'
+                      }`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <span className="font-display font-bold text-base tracking-tight">{link.name}</span>
@@ -252,16 +265,15 @@ export default function Navbar() {
                     <span className="font-mono text-xs text-slate-400 group-hover:text-sky-700 transition-colors font-medium">
                       {link.num}
                     </span>
-                    <ChevronRight className={`w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 ${
-                      isActive ? 'text-sky-600' : 'text-slate-300 group-hover:text-slate-500'
-                    }`} />
+                    <ChevronRight className={`w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 ${isActive ? 'text-sky-600' : 'text-slate-300 group-hover:text-slate-500'
+                      }`} />
                   </div>
                 </Link>
               );
             })}
 
             {/* Quick Contact Line */}
-            <div className="pt-4 mt-4 border-t border-slate-100 space-y-2">
+            <div className="pt-3.5 mt-3 border-t border-slate-100 space-y-2">
               <div className="px-3 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
                 Direct Communication
               </div>
@@ -301,7 +313,7 @@ export default function Navbar() {
               <span>Start Project Scope</span>
               <ArrowUpRight className="w-4 h-4" />
             </Link>
-            
+
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 px-1">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
