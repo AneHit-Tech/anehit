@@ -34,7 +34,13 @@ export default function ServicesPage() {
   const [searchParams] = useSearchParams();
   const targetServiceId = serviceId || searchParams.get('service');
 
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeCategory, setActiveCategory] = useState(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && ['Core Software', 'AI & Security', 'Platforms & Commerce'].includes(categoryParam)) {
+      return categoryParam;
+    }
+    return 'All';
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   const iconMap = {
@@ -51,7 +57,7 @@ export default function ServicesPage() {
     '11': Wrench,
   };
 
-  const categoryMap = {
+  const categoryMap = useMemo(() => ({
     '01': 'Core Software',
     '02': 'Core Software',
     '03': 'Platforms & Commerce',
@@ -63,14 +69,15 @@ export default function ServicesPage() {
     '09': 'Platforms & Commerce',
     '10': 'Core Software',
     '11': 'Core Software',
-  };
+  }), []);
 
-  const categories = [
-    { id: 'All', label: 'All Services', count: 11 },
-    { id: 'Core Software', label: 'Core Software', count: 4 },
-    { id: 'AI & Security', label: 'AI & Security', count: 3 },
-    { id: 'Platforms & Commerce', label: 'Platforms & Commerce', count: 4 },
-  ];
+  // Compute accurate category counts dynamically from services data
+  const categories = useMemo(() => [
+    { id: 'All', label: 'All Services', count: services.length },
+    { id: 'Core Software', label: 'Core Software', count: services.filter(s => categoryMap[s.number] === 'Core Software').length },
+    { id: 'AI & Security', label: 'AI & Security', count: services.filter(s => categoryMap[s.number] === 'AI & Security').length },
+    { id: 'Platforms & Commerce', label: 'Platforms & Commerce', count: services.filter(s => categoryMap[s.number] === 'Platforms & Commerce').length },
+  ], [categoryMap]);
 
   // Check if a specific service is selected
   const selectedService = useMemo(() => {
@@ -78,17 +85,26 @@ export default function ServicesPage() {
     return services.find(s => s.id === targetServiceId);
   }, [targetServiceId]);
 
-  // Filtered by category and search for directory view
+  // Filtered by category and comprehensive instant search
   const filteredServices = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     return services.filter((service) => {
-      const matchesCategory = activeCategory === 'All' || categoryMap[service.number] === activeCategory;
-      const matchesSearch =
-        service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.technologies.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
+      const cat = categoryMap[service.number];
+      const matchesCategory = activeCategory === 'All' || cat === activeCategory;
+      if (!matchesCategory) return false;
+      if (!query) return true;
+
+      const titleMatch = service.title?.toLowerCase().includes(query);
+      const shortDescMatch = service.shortDescription?.toLowerCase().includes(query);
+      const fullDescMatch = service.fullDescription?.toLowerCase().includes(query);
+      const techMatch = service.technologies?.some(t => t.toLowerCase().includes(query));
+      const idealMatch = service.idealFor?.toLowerCase().includes(query);
+      const delivMatch = service.deliverables?.some(d => d.toLowerCase().includes(query));
+      const catMatch = cat?.toLowerCase().includes(query);
+
+      return titleMatch || shortDescMatch || fullDescMatch || techMatch || idealMatch || delivMatch || catMatch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, categoryMap]);
 
   // =========================================================================
   // VIEW A: DEDICATED BALANCED SPLIT VIEW (Clean, Left & Right Covered, No Switch Section)
@@ -352,27 +368,27 @@ export default function ServicesPage() {
     <div className="min-h-screen bg-slate-50/50">
 
       {/* 1. HERO SECTION */}
-      <section className="relative pt-12 pb-16 sm:pt-16 sm:pb-20 md:pt-20 md:pb-24 overflow-hidden bg-blueprint border-b border-slate-200">
-        <div className="studio-container relative z-10 text-center max-w-3xl mx-auto reveal-init" data-reveal>
+      <section className="relative pt-12 pb-16 sm:pt-16 sm:pb-20 md:pt-20 md:pb-24 overflow-hidden bg-blueprint border-b border-slate-200 no-reveal">
+        <div className="studio-container relative z-10 text-center max-w-3xl mx-auto">
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 shadow-xs text-xs font-mono text-sky-700 font-semibold mb-4 reveal-init">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 shadow-xs text-xs font-mono text-sky-700 font-semibold mb-4">
             <Sparkles className="w-3.5 h-3.5 text-sky-600" />
             <span>PROFESSIONAL WEB & SOFTWARE SERVICES</span>
           </div>
 
-          {/* Main Title with text fade */}
-          <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-slate-950 tracking-tight leading-tight mb-4 text-fade-in">
+          {/* Main Title */}
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-slate-950 tracking-tight leading-tight mb-4">
             Clear, Reliable Software Services for Your Business
           </h1>
 
-          {/* Subtitle with text fade */}
-          <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto text-fade-in stagger-1">
+          {/* Subtitle */}
+          <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
             Whether you need a new website, a mobile app, an online store, or custom software, we build it cleanly and handle all the technical details so you can focus on running your business.
           </p>
 
           {/* Value Highlights */}
-          <div className="mt-8 pt-6 border-t border-slate-200/80 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs font-mono text-slate-600 reveal-init stagger-2">
+          <div className="mt-8 pt-6 border-t border-slate-200/80 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs font-mono text-slate-600">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-sky-600" />
               <span>11 Core Capabilities</span>
@@ -390,7 +406,7 @@ export default function ServicesPage() {
       </section>
 
       {/* 2. FILTER & SEARCH CONTROLS */}
-      <section className="sticky top-16 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 py-4 shadow-xs">
+      <section className="sticky top-16 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 py-4 shadow-xs no-reveal">
         <div className="studio-container">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
 
@@ -402,13 +418,13 @@ export default function ServicesPage() {
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${isActive
-                      ? 'bg-slate-950 text-white shadow-sm'
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer active:scale-95 ${isActive
+                      ? 'bg-slate-950 text-white shadow-sm ring-2 ring-slate-900/20'
                       : 'bg-slate-100 hover:bg-slate-200/80 text-slate-600 hover:text-slate-950'
                       }`}
                   >
                     <span>{cat.label}</span>
-                    <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono ${isActive ? 'bg-slate-800 text-sky-300' : 'bg-white text-slate-500'
+                    <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-bold ${isActive ? 'bg-slate-800 text-sky-300' : 'bg-white text-slate-600 border border-slate-200/70'
                       }`}>
                       {cat.count}
                     </span>
@@ -426,7 +442,7 @@ export default function ServicesPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search services or tech..."
+                placeholder="Search services or tech (e.g. React, Stripe, AI)..."
                 className="w-full pl-10 pr-9 py-2.5 bg-white hover:bg-slate-50/80 focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 transition-all outline-none shadow-2xs font-medium"
               />
               {searchQuery && (
@@ -446,19 +462,52 @@ export default function ServicesPage() {
       </section>
 
       {/* 3. SERVICES GRID */}
-      <section className="py-12 sm:py-16">
+      <section className="py-10 sm:py-14 no-reveal">
         <div className="studio-container">
 
-          {filteredServices.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 max-w-lg mx-auto">
-              <Search className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-              <h3 className="font-display font-bold text-lg text-slate-900">No matching services found</h3>
-              <p className="text-slate-500 text-xs sm:text-sm mt-1">Try adjusting your search terms or select "All Services".</p>
+          {/* Real-time Filter & Results Indicator */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-3 border-b border-slate-200/80 text-xs font-mono">
+            <div className="flex items-center gap-2 text-slate-600">
+              <span>Showing</span>
+              <span className="font-bold text-slate-950 px-2.5 py-0.5 rounded-md bg-white border border-slate-200 shadow-2xs">
+                {filteredServices.length} {filteredServices.length === 1 ? 'service' : 'services'}
+              </span>
+              {activeCategory !== 'All' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
+                  Category: {activeCategory}
+                </span>
+              )}
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-200 font-semibold">
+                  Search: "{searchQuery}"
+                </span>
+              )}
+            </div>
+
+            {(activeCategory !== 'All' || searchQuery) && (
               <button
                 onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
-                className="mt-4 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-sky-600 transition-colors"
+                className="text-xs font-mono font-semibold text-sky-600 hover:text-sky-800 transition-colors cursor-pointer hover:underline"
               >
-                Reset Filters
+                Clear all filters ({services.length} Total)
+              </button>
+            )}
+          </div>
+
+          {filteredServices.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 max-w-lg mx-auto shadow-xs animate-service-enter">
+              <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto mb-3 text-slate-500">
+                <Search className="w-6 h-6 text-slate-400" />
+              </div>
+              <h3 className="font-display font-bold text-lg text-slate-900">No matching services found</h3>
+              <p className="text-slate-500 text-xs sm:text-sm mt-1 max-w-sm mx-auto">
+                No services matched {searchQuery ? `"${searchQuery}" in ${activeCategory}` : `the ${activeCategory} category`}. Try adjusting your keywords or resetting filters.
+              </p>
+              <button
+                onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
+                className="mt-4 px-5 py-2.5 rounded-xl bg-slate-950 text-white text-xs font-semibold hover:bg-sky-600 transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                Show All 11 Services
               </button>
             </div>
           ) : (
@@ -469,11 +518,10 @@ export default function ServicesPage() {
 
                 return (
                   <Link
-                    key={service.id}
+                    key={`${activeCategory}-${service.id}`}
                     to={`/services/${service.id}`}
-                    className="block h-full cursor-pointer no-underline text-inherit group reveal-init"
-                    style={{ transitionDelay: `${(index % 6) * 75}ms` }}
-                    data-reveal
+                    className="block h-full cursor-pointer no-underline text-inherit group animate-service-enter"
+                    style={{ animationDelay: `${(index % 6) * 35}ms` }}
                   >
                     <div className="studio-card h-full flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200/90 shadow-xs group-hover:shadow-xl group-hover:border-sky-300 transition-all duration-300">
                       <div>
@@ -493,13 +541,13 @@ export default function ServicesPage() {
                           </div>
                         </div>
 
-                        {/* Title with text fade */}
-                        <h3 className="font-display font-bold text-xl text-slate-950 mb-2.5 leading-snug group-hover:text-sky-700 transition-colors text-fade-in">
+                        {/* Title */}
+                        <h3 className="font-display font-bold text-xl text-slate-950 mb-2.5 leading-snug group-hover:text-sky-700 transition-colors">
                           {service.title}
                         </h3>
 
-                        {/* Short Description with text fade */}
-                        <p className="text-slate-600 text-sm leading-relaxed mb-5 text-fade-in stagger-1">
+                        {/* Short Description */}
+                        <p className="text-slate-600 text-sm leading-relaxed mb-5">
                           {service.shortDescription}
                         </p>
 

@@ -5,23 +5,28 @@ export default function ScrollRevealManager() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Wait for DOM to paint current route
+    let observer = null;
+    let failsafeTimer = null;
+
+    // Small delay to let current route DOM paint
     const timer = setTimeout(() => {
-      // Find all target elements that should reveal on scroll
+      // Find all target elements that explicitly opt-in to reveal
+      // NOTE: We do NOT blindly query generic sections to avoid accidental content invisibility on refresh
       const targets = document.querySelectorAll(
-        '[data-reveal], .reveal-init, .text-fade-in, section:not(.no-reveal)'
+        '[data-reveal], .reveal-init'
       );
 
       if (!targets.length) return;
 
-      // Automatically add .reveal-init if not present
-      targets.forEach((el, index) => {
+      // Automatically add .reveal-init if not present on explicitly marked elements
+      targets.forEach((el) => {
         if (!el.classList.contains('reveal-init') && !el.classList.contains('no-reveal')) {
           el.classList.add('reveal-init');
         }
       });
 
-      const observer = new IntersectionObserver(
+      // Generous positive rootMargin so items start fading in slightly BEFORE entering the viewport
+      observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
@@ -31,31 +36,44 @@ export default function ScrollRevealManager() {
           });
         },
         {
-          threshold: 0.05,
-          rootMargin: '0px 0px -20px 0px',
+          threshold: 0.01,
+          rootMargin: '0px 0px 80px 0px',
         }
       );
 
+      // Check current viewport immediately
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
       targets.forEach((el) => {
-        // If element is already in the viewport upon mount (e.g. Hero section)
         const rect = el.getBoundingClientRect();
-        if (rect.top < window.innerHeight * 0.95 && rect.bottom > 0) {
-          // Immediately or micro-stagger reveal above-the-fold content
-          setTimeout(() => {
-            el.classList.add('reveal-visible');
-          }, 60);
+        // If element is already anywhere within or near the viewport, reveal immediately
+        if (rect.top <= windowHeight + 60 && rect.bottom >= -50) {
+          el.classList.add('reveal-visible');
         } else {
           observer.observe(el);
         }
       });
 
-      return () => {
-        observer.disconnect();
-      };
-    }, 80);
+      // Robust Failsafe: Ensure no element stays invisible permanently if observer doesn't fire
+      failsafeTimer = setTimeout(() => {
+        targets.forEach((el) => {
+          if (!el.classList.contains('reveal-visible')) {
+            const rect = el.getBoundingClientRect();
+            if (rect.top <= (window.innerHeight || 800) * 1.25) {
+              el.classList.add('reveal-visible');
+            }
+          }
+        });
+      }, 300);
 
-    return () => clearTimeout(timer);
+    }, 40);
+
+    return () => {
+      clearTimeout(timer);
+      if (failsafeTimer) clearTimeout(failsafeTimer);
+      if (observer) observer.disconnect();
+    };
   }, [pathname]);
 
   return null;
 }
+

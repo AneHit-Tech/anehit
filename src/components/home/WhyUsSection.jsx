@@ -293,11 +293,6 @@ export default function WhyUsSection() {
                         <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-normal">
                           {pillar.description}
                         </p>
-
-                        <div className="pt-2 flex items-center gap-2 text-xs sm:text-sm font-mono text-slate-500">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Swipe or click arrows to explore all 5 benefits</span>
-                        </div>
                       </div>
 
                       {/* Right Concrete Deliverables Card */}
@@ -350,8 +345,8 @@ export default function WhyUsSection() {
               onClick={() => setCurrentIndex(idx)}
               aria-label={`Go to slide ${idx + 1}`}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === currentIndex
-                  ? 'w-8 bg-slate-950 shadow-xs'
-                  : 'w-2.5 bg-slate-200 hover:bg-slate-300'
+                ? 'w-8 bg-slate-950 shadow-xs'
+                : 'w-2.5 bg-slate-200 hover:bg-slate-300'
                 }`}
             />
           ))}

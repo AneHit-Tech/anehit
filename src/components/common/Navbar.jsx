@@ -77,25 +77,24 @@ export default function Navbar() {
 
   return (
     <>
-      <header 
-        className={`sticky top-0 z-40 transition-all duration-300 ${
-          scrolled 
-            ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs' 
-            : 'bg-white/85 backdrop-blur-sm border-b border-slate-200/60'
-        }`}
+      <header
+        className={`sticky top-0 z-40 transition-all duration-300 ${scrolled
+          ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs'
+          : 'bg-white/85 backdrop-blur-sm border-b border-slate-200/60'
+          }`}
       >
         <div className="studio-container flex items-center justify-between h-14 sm:h-16 lg:h-18 transition-all">
-          
+
           {/* Brand Logo with Official AneHit Image */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 group focus:outline-none"
             aria-label="AneHit Homepage"
           >
             <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl overflow-hidden border border-slate-200/90 bg-slate-950 flex items-center justify-center shrink-0 shadow-2xs group-hover:border-sky-500 transition-colors">
-              <img 
-                src="/anehit-logo.png" 
-                alt="AneHit Logo" 
+              <img
+                src="/anehit-logo.png"
+                alt="AneHit Logo"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -122,11 +121,10 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`px-3 py-1.5 xl:px-3.5 xl:py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                    isActive
-                      ? 'text-sky-700 bg-sky-50/90 border border-sky-200/80 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/80'
-                  }`}
+                  className={`px-3 py-1.5 xl:px-3.5 xl:py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${isActive
+                    ? 'text-sky-700 bg-sky-50/90 border border-sky-200/80 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/80'
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -138,7 +136,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-4.5 py-2 rounded-xl bg-slate-950 hover:bg-sky-600 text-white font-semibold text-sm tracking-wide transition-all shadow-xs active:scale-95"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-slate-950 hover:bg-sky-600 text-white font-semibold text-sm tracking-wide transition-all shadow-xs active:scale-95"
             >
               <span>Let's Work Together</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -154,7 +152,7 @@ export default function Navbar() {
               <span>Hire Us</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
-            
+
             {/* Sleek Mobile Hamburger Trigger */}
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -184,9 +182,8 @@ export default function Navbar() {
 
         {/* 2. Solid White Sidebar Drawer with Smooth Spring Deceleration Curve */}
         <aside
-          className={`fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white shadow-2xl z-[101] flex flex-col justify-between transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] transform will-change-transform ${
-            mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
+          className={`fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white shadow-2xl z-[101] flex flex-col justify-between transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] transform will-change-transform ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+            }`}
         >
           {/* Drawer Top Header */}
           <div className="h-14 sm:h-16 px-4 sm:px-5 border-b border-slate-200/90 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white shrink-0">

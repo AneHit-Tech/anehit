@@ -135,9 +135,9 @@ html.lenis, html.lenis body {
 /* Base Section & Card Reveal on Scroll */
 .reveal-init {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(16px);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
 
@@ -146,12 +146,28 @@ html.lenis, html.lenis body {
   transform: translateY(0) !important;
 }
 
+/* Fast Service Card Enter Animation for Instant Filter Feedback */
+@keyframes serviceCardEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-service-enter {
+  animation: serviceCardEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Text Fade Reveal - Fail-safe defaults so text is never invisibly hidden */
 .text-fade-in {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
 
@@ -159,7 +175,7 @@ html.lenis, html.lenis body {
 .reveal-init:not(.reveal-visible) .text-fade-in,
 .text-fade-in.reveal-init:not(.reveal-visible) {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(10px);
 }
 
 .text-fade-in.reveal-visible,
@@ -169,19 +185,21 @@ html.lenis, html.lenis body {
 }
 
 /* Stagger Delays for one-by-one display */
-.stagger-1 { transition-delay: 60ms !important; }
-.stagger-2 { transition-delay: 120ms !important; }
-.stagger-3 { transition-delay: 180ms !important; }
-.stagger-4 { transition-delay: 240ms !important; }
-.stagger-5 { transition-delay: 300ms !important; }
-.stagger-6 { transition-delay: 360ms !important; }
+.stagger-1 { transition-delay: 50ms !important; }
+.stagger-2 { transition-delay: 100ms !important; }
+.stagger-3 { transition-delay: 150ms !important; }
+.stagger-4 { transition-delay: 200ms !important; }
+.stagger-5 { transition-delay: 250ms !important; }
+.stagger-6 { transition-delay: 300ms !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal-init,
-  .text-fade-in {
+  .text-fade-in,
+  .animate-service-enter {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+    animation: none !important;
   }
 }
 
